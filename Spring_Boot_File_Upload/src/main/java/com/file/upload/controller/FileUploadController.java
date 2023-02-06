@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpSession;
@@ -24,41 +25,84 @@ import com.file.upload.repository.ImagesRepository;
 
 @Controller
 public class FileUploadController {
-	
+
 	@Autowired
 	private ImagesRepository imgRepo;
 	
+
 	@GetMapping("/fileUpload")
 	public String fileUploadPage(Model model) {
-		
+
 		List<Images> list = imgRepo.findAll();
 		model.addAttribute("list", list);
 		return "file_upload";
 	}
-	
+
+/*	@GetMapping("/mfileUpload")
+	public String multipleFileUploadPage() {
+
+		return "multiple_files_upload";
+	}  */
+
 	@PostMapping("imageUpload")
-	public String imageUpload(@RequestParam MultipartFile img,HttpSession session) {
-		
+	public String imageUpload(@RequestParam MultipartFile img, HttpSession session) {
+
 		Images im = new Images();
 		im.setImageName(img.getOriginalFilename());
 		Images uploadImg = imgRepo.save(im);
 		if (uploadImg != null) {
-			
+
 			try {
 				File saveFile = new ClassPathResource("static/img").getFile();
-				Path path = Paths.get(saveFile.getAbsolutePath()+File.separator+img.getOriginalFilename());
+				Path path = Paths.get(saveFile.getAbsolutePath() + File.separator + img.getOriginalFilename());
 				System.out.println(path);
 				Files.copy(img.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
-				
+
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			
-		} 
-		
+
+		}
+
 		session.setAttribute("msg", "Image uploaded sucessfully");
-		
+
 		return "redirect:/fileUpload";
 	}
+
+/*	@PostMapping("/multipleFileUpload")
+	public String multipleFileUpload(@RequestParam("files") MultipartFile[] files, HttpSession session) {
+		
+		List<String> photos = new ArrayList<String>();
+		for (MultipartFile file : files) {
+			System.err.println(file.getOriginalFilename());
+			photos.add(file.getOriginalFilename());
+		}
+		for (String ph : photos) {
+			System.err.println(ph.length());
+		}
+		mRepo.save(photos);
+		
+		/*	Images im = new Images();
+		im.setImageName(img.getOriginalFilename());
+		Images uploadImg = imgRepo.save(im);
+		if (uploadImg != null) {
+
+			try {
+				File saveFile = new ClassPathResource("static/img").getFile();
+				Path path = Paths.get(saveFile.getAbsolutePath() + File.separator + img.getOriginalFilename());
+				System.out.println(path);
+				Files.copy(img.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+		}
+
+		session.setAttribute("msg", "Image uploaded sucessfully");  
+
+		return "redirect:/fileUpload";	
+		
+	}  */
 
 }
